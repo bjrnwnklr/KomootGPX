@@ -1,17 +1,15 @@
 import getpass
-import string
-import unicodedata
 
 
 class bcolor:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 def boolToColorStr(b):
@@ -46,7 +44,7 @@ def prompt_pass(title):
     print()
     print(bcolor.BOLD + bcolor.HEADER + title + bcolor.ENDC)
     while True:
-        selection = getpass.getpass('Password: ')
+        selection = getpass.getpass("Password: ")
         if len(selection) < 1:
             print(bcolor.FAIL + "Invalid input" + bcolor.ENDC)
             continue
@@ -57,5 +55,5 @@ def prompt_pass(title):
 
 def sanitize_filename(value):
     for c in '\\/:*?"<>|':
-        value = value.replace(c, '')
+        value = value.replace(c, "")
     return value
