@@ -36,7 +36,11 @@ class POI:
 
 
 def extract_user_from_tip(json):
-    if "_embedded" in json and "creator" in json["_embedded"] and "display_name" in json["_embedded"]["creator"]:
+    if (
+        "_embedded" in json
+        and "creator" in json["_embedded"]
+        and "display_name" in json["_embedded"]["creator"]
+    ):
         return json["_embedded"]["creator"]["display_name"] + ": "
     return ""
 
@@ -55,7 +59,10 @@ class GpxCompiler:
             return
 
         self.pois = []
-        if "timeline" in tour["_embedded"] and "_embedded" in tour["_embedded"]["timeline"]:
+        if (
+            "timeline" in tour["_embedded"]
+            and "_embedded" in tour["_embedded"]["timeline"]
+        ):
             for item in tour["_embedded"]["timeline"]["_embedded"]["items"]:
                 if item["type"] != "poi" and item["type"] != "highlight":
                     continue
@@ -71,9 +78,9 @@ class GpxCompiler:
                     if "location" in ref:
                         point = Point(ref["location"])
                     if "details" in ref:
-                        details = ', '.join(str(x['formatted']) for x in ref['details'])
+                        details = ", ".join(str(x["formatted"]) for x in ref["details"])
 
-                    self.pois.append(POI(name, point, '', '', details, "POI"))
+                    self.pois.append(POI(name, point, "", "", details, "POI"))
 
                 elif item["type"] == "highlight":
                     name = "Unknown Highlight"
@@ -88,29 +95,41 @@ class GpxCompiler:
                         point = Point(ref["mid_point"])
                     if "front_image" in ref["_embedded"]:
                         if "src" in ref["_embedded"]["front_image"]:
-                            image_url = ref["_embedded"]["front_image"]["src"].split("?", 1)[0]
+                            image_url = ref["_embedded"]["front_image"]["src"].split(
+                                "?", 1
+                            )[0]
 
                     tips = self.api.fetch_highlight_tips(str(ref["id"]))
                     if "_embedded" in tips and "items" in tips["_embedded"]:
-                        details += "\n――――――――――\n".join(str(extract_user_from_tip(x) + x["text"]) for x in tips["_embedded"]["items"])
+                        details += "\n――――――――――\n".join(
+                            str(extract_user_from_tip(x) + x["text"])
+                            for x in tips["_embedded"]["items"]
+                        )
 
-                    self.pois.append(POI(name, point, image_url, url, details, "Highlight"))
+                    self.pois.append(
+                        POI(name, point, image_url, url, details, "Highlight")
+                    )
 
     def generate(self):
         gpx = gpxpy.gpx.GPX()
         gpx.name = self.tour["name"]
-        if self.tour['type'] == "tour_recorded":
+        if self.tour["type"] == "tour_recorded":
             gpx.name = gpx.name + " (Completed)"
-        gpx.description = f"Distance: {str(int(self.tour['distance']) / 1000.0)}km, " \
-                          f"Estimated duration: {str(round(self.tour['duration'] / 3600.0, 2))}h, " \
-                          f"Elevation up: {self.tour['elevation_up']}m, " \
-                          f"Elevation down: {self.tour['elevation_down']}m" \
-
+        gpx.description = (
+            f"Distance: {str(int(self.tour['distance']) / 1000.0)}km, "
+            f"Estimated duration: {str(round(self.tour['duration'] / 3600.0, 2))}h, "
+            f"Elevation up: {self.tour['elevation_up']}m, "
+            f"Elevation down: {self.tour['elevation_down']}m"
+        )
         if "difficulty" in self.tour:
-            gpx.description = gpx.description + f", Grade: {self.tour['difficulty']['grade']}"
+            gpx.description = (
+                gpx.description + f", Grade: {self.tour['difficulty']['grade']}"
+            )
 
         gpx.author_name = self.tour["_embedded"]["creator"]["display_name"]
-        gpx.author_link = "https://www.komoot.de/user/" + str(self.tour["_embedded"]["creator"]["username"])
+        gpx.author_link = "https://www.komoot.de/user/" + str(
+            self.tour["_embedded"]["creator"]["username"]
+        )
         gpx.author_link_text = "View " + gpx.author_name + "'s Profile on Komoot"
         gpx.link = "https://www.komoot.de/tour/" + str(self.tour["id"])
         gpx.link_text = "View tour on Komoot"
@@ -129,7 +148,7 @@ class GpxCompiler:
         track.segments.append(segment)
 
         augment_timestamp = self.route[0].time == 0
-        start_date = datetime.strptime(self.tour['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
+        start_date = datetime.strptime(self.tour["date"], "%Y-%m-%dT%H:%M:%S.%f%z")
 
         for coord in self.route:
             point = gpxpy.gpx.GPXTrackPoint(coord.lat, coord.lng)
