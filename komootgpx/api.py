@@ -34,8 +34,10 @@ class KomootApi:
         return {}
 
     @staticmethod
-    def __send_request(url, auth, critical=True):
-        r = requests.get(url, auth=auth)
+    def __send_request(url, auth, params=None, critical=True):
+        if not params:
+            params = {}
+        r = requests.get(url, params=params, auth=auth)
         if r.status_code != 200:
             print_error("Error " + str(r.status_code) + ": " + str(r.json()))
             if critical:
@@ -55,16 +57,25 @@ class KomootApi:
 
         print("Logged in as '" + r.json()["user"]["displayname"] + "'")
 
-    def fetch_tours(self, tourType="all", silent=False):
+    def fetch_tours(self, tour_user_id=None, tourType="all", silent=False):
+        # if a different user than the logged in one is specified, it is mandatory
+        # to set the `status` parameter of the request to `public`.
+        # Otherwise, use the current logged in user.
+        params = {}
+        if tour_user_id:
+            params["status"] = "public"
+        else:
+            tour_user_id = self.user_id
+
         if not silent:
-            print("Fetching tours of user '" + self.user_id + "'...")
+            print("Fetching tours of user '" + tour_user_id + "'...")
 
         results = {}
         has_next_page = True
-        current_uri = "https://api.komoot.de/v007/users/" + self.user_id + "/tours/"
+        current_uri = "https://api.komoot.de/v007/users/" + tour_user_id + "/tours/"
         while has_next_page:
             r = self.__send_request(
-                current_uri, BasicAuthToken(self.user_id, self.token)
+                current_uri, BasicAuthToken(self.user_id, self.token), params
             )
 
             has_next_page = (
@@ -91,8 +102,7 @@ class KomootApi:
         print("Found " + str(len(results)) + " tours")
         return results
 
-    def print_tours(self, tourType="all"):
-        tours = self.fetch_tours(tourType, silent=True)
+    def print_tours(self, tours):
         print()
         for tour_id, name in tours.items():
             print(
@@ -107,7 +117,7 @@ class KomootApi:
             )
 
         if len(tours) < 1:
-            print_error("No tours found on your profile")
+            print_error("No tours found on profile.")
 
     def fetch_tour(self, tour_id):
         print("Fetching tour '" + tour_id + "'...")
