@@ -19,7 +19,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3 :: Only",
     ],
-    packages=find_packages(include=["komootgpx"]),
+    packages=find_packages(exclude=["test"]),
     python_requires=">=3.9",
     install_requires=[
         "certifi>=2020.12.5",
