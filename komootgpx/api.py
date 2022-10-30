@@ -122,6 +122,11 @@ class KomootApi:
     def fetch_tour(self, tour_id):
         print("Fetching tour '" + tour_id + "'...")
 
+        # some of these query parameters are no longer supported.
+        # The only supported ones are in _embedded:
+        # coordinates, way_types, surfaces, directions, participants
+        # Not supported:
+        # timeline, directions, fields, format, timeline_highlights_fields, recommenders
         r = self.__send_request(
             "https://api.komoot.de/v007/tours/"
             + tour_id
