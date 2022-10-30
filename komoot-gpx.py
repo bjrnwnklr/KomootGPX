@@ -72,9 +72,8 @@ def usage():
     )
 
 
-def make_gpx(tour_id, api, output_dir, no_poi):
-    tour = api.fetch_tour(str(tour_id))
-    gpx = GpxCompiler(tour, api, no_poi)
+def make_gpx(tour, tour_id, output_dir):
+    gpx = GpxCompiler(tour)
 
     path = f"{output_dir}/{sanitize_filename(tour['name'])}-{tour_id}.gpx"
     f = open(path, "w", encoding="utf-8")
@@ -90,14 +89,13 @@ def main(argv):
     pwd = ""
     user_id = ""
     print_tours = False
-    no_poi = False
     typeFilter = "all"
     output_dir = os.getcwd()
 
     try:
         opts, args = getopt.getopt(
             argv,
-            "hle:o:d:m:p:f:u:",
+            "hlo:d:m:p:f:u:",
             [
                 "list-tours",
                 "make-gpx=",
@@ -105,7 +103,6 @@ def main(argv):
                 "pass=",
                 "user=",
                 "filter=",
-                "no-poi",
                 "output=",
                 "make-all",
             ],
@@ -124,9 +121,6 @@ def main(argv):
 
         elif opt in ("-l", "--list-tours"):
             print_tours = True
-
-        elif opt in ("-e", "--no-poi"):
-            no_poi = True
 
         elif opt in ("-d", "--make-gpx"):
             tour_selection = str(arg)
@@ -182,10 +176,12 @@ def main(argv):
         exit(0)
 
     if tour_selection == "all":
-        for x in tours:
-            make_gpx(x, api, output_dir, no_poi)
+        for tour_id in tours:
+            tour = api.fetch_tour(str(tour_id))
+            make_gpx(tour, tour_id, output_dir)
     else:
-        make_gpx(tour_selection, api, output_dir, no_poi)
+        tour = api.fetch_tour(str(tour_selection))
+        make_gpx(tour, tour_selection, output_dir)
     print()
 
 
