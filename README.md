@@ -1,4 +1,13 @@
 # KomootGPX
+
+This is a fork of [KomootGPX](https://github.com/ThePBone/KomootGPX) by [ThePBone](https://github.com/ThePBone).
+
+Differences to the main repo:
+
+-   refactored into a Python package so it can be installed and the very useful functions can be used in other projects, without use of the command line utility.
+
+# Original README
+
 Download Komoot tracks and highlights as GPX files with metadata
 
 [Python 3 or later](https://www.python.org/downloads/) is required.
@@ -6,6 +15,7 @@ Download Komoot tracks and highlights as GPX files with metadata
 ## Preparation
 
 Install dependencies
+
 ```
 pip install -r requirements.txt
 ```
@@ -13,9 +23,11 @@ pip install -r requirements.txt
 ## Usage
 
 Run script in interactive mode
+
 ```
 python komoot-gpx.py
 ```
+
 ```
 Enter your mail address (komoot.de)
 >example@mail.com
@@ -42,9 +54,11 @@ GPX file written to 'D:\Development\KomootGPX\Example trip A-3331210XX.gpx'
 ```
 
 Display advanced usage information
+
 ```
 python komoot-gpx.py --help
 ```
+
 ```
 komoot-gpx.py [options]
 [Authentication]

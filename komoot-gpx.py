@@ -2,31 +2,66 @@ import getopt
 import os
 import sys
 
-from colorama import init
+import colorama
 
-from api import *
-from gpxcompiler import *
-from utils import *
+from komootgpx.api import KomootApi
+from komootgpx.gpxcompiler import GpxCompiler
+from komootgpx.utils import (
+    bcolor,
+    sanitize_filename,
+    print_error,
+    print_success,
+    prompt,
+    prompt_pass,
+)
 
-init()
+colorama.init()
 
 
 def usage():
-    print(bcolor.HEADER + bcolor.BOLD + 'komoot-gpx.py [options]' + bcolor.ENDC)
-    print(bcolor.OKBLUE + '[Authentication]' + bcolor.ENDC)
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-m', '--mail=mail_address', 'Login using specified email address'))
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-p', '--pass=password',
-                                             'Use provided password and skip interactive prompt'))
-    print(bcolor.OKBLUE + '[Tours]' + bcolor.ENDC)
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-l', '--list-tours', 'List all tours of the logged in user'))
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-d', '--make-gpx=tour_id', 'Download tour as GPX'))
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-a', '--make-all', 'Download all tours'))
-    print(bcolor.OKBLUE + '[Filters]' + bcolor.ENDC)
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-f', '--filter=type', 'Filter by track type (either "planned" or '
-                                                                    '"recorded")'))
-    print(bcolor.OKBLUE + '[Generator]' + bcolor.ENDC)
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-o', '--output', 'Output directory (default: working directory)'))
-    print('\t{:<2s}, {:<30s} {:<10s}'.format('-e', '--no-poi', 'Do not include highlights as POIs'))
+    print(bcolor.HEADER + bcolor.BOLD + "komoot-gpx.py [options]" + bcolor.ENDC)
+    print(bcolor.OKBLUE + "[Authentication]" + bcolor.ENDC)
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-m", "--mail=mail_address", "Login using specified email address"
+        )
+    )
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-p", "--pass=password", "Use provided password and skip interactive prompt"
+        )
+    )
+    print(bcolor.OKBLUE + "[Tours]" + bcolor.ENDC)
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-l", "--list-tours", "List all tours of the logged in user"
+        )
+    )
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-d", "--make-gpx=tour_id", "Download tour as GPX"
+        )
+    )
+    print("\t{:<2s}, {:<30s} {:<10s}".format("-a", "--make-all", "Download all tours"))
+    print(bcolor.OKBLUE + "[Filters]" + bcolor.ENDC)
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-f",
+            "--filter=type",
+            'Filter by track type (either "planned" or ' '"recorded")',
+        )
+    )
+    print(bcolor.OKBLUE + "[Generator]" + bcolor.ENDC)
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-o", "--output", "Output directory (default: working directory)"
+        )
+    )
+    print(
+        "\t{:<2s}, {:<30s} {:<10s}".format(
+            "-e", "--no-poi", "Do not include highlights as POIs"
+        )
+    )
 
 
 def make_gpx(tour_id, api, output_dir, no_poi):
@@ -42,23 +77,35 @@ def make_gpx(tour_id, api, output_dir, no_poi):
 
 
 def main(argv):
-    tour_selection = ''
-    mail = ''
-    pwd = ''
+    tour_selection = ""
+    mail = ""
+    pwd = ""
     print_tours = False
     no_poi = False
     typeFilter = "all"
     output_dir = os.getcwd()
 
     try:
-        opts, args = getopt.getopt(argv, "hle:o:d:m:p:f:", ["list-tours", "make-gpx=", "mail=",
-                                                        "pass=", "filter=", "no-poi", "output=", "make-all"])
+        opts, args = getopt.getopt(
+            argv,
+            "hle:o:d:m:p:f:",
+            [
+                "list-tours",
+                "make-gpx=",
+                "mail=",
+                "pass=",
+                "filter=",
+                "no-poi",
+                "output=",
+                "make-all",
+            ],
+        )
     except getopt.GetoptError:
         usage()
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '-h':
+        if opt == "-h":
             usage()
             sys.exit()
 
@@ -106,7 +153,9 @@ def main(argv):
     tours = api.fetch_tours(typeFilter)
 
     if tour_selection != "all" and int(tour_selection) not in tours:
-        print_error("Unknown tour id selected. These are all available tours on your profile:")
+        print_error(
+            "Unknown tour id selected. These are all available tours on your profile:"
+        )
         api.print_tours(typeFilter)
         exit(0)
 

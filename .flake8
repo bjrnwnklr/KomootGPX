@@ -1,0 +1,22 @@
+[flake8]
+extend-ignore = E203
+exclude =
+    .git,
+    .github,
+    .venv,
+    .tox,
+    .mypy_cache,
+    .pytest_cache,
+    __pycache__,
+    *.pyc,
+    hubconf.py,
+    docs/build,
+    docs/source/galleries,
+max-line-length = 88
+per-file-ignores =
+    __init__.py: F401, F403, F405
+    tests/context.py: F401, E402, F403, F405
+    createschema.py: F401
+    alembic/env.py: E722
+show_source = True
+statistics = True
