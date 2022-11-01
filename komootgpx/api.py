@@ -151,3 +151,32 @@ class KomootApi:
         )
 
         return r.json()
+
+    def fetch_recommenders(self, highlight_id=None):
+        params = {}
+
+        results = {}
+        has_next_page = True
+        current_uri = (
+            f"https://api.komoot.de/v007/highlights/{highlight_id}/recommenders/"
+        )
+        while has_next_page:
+            r = self.__send_request(
+                current_uri, BasicAuthToken(self.user_id, self.token), params
+            )
+
+            has_next_page = (
+                "next" in r.json()["_links"] and "href" in r.json()["_links"]["next"]
+            )
+            if has_next_page:
+                current_uri = r.json()["_links"]["next"]["href"]
+
+            recommenders = r.json()["_embedded"]["items"]
+            for recommender in recommenders:
+                # get only public profiles
+                if recommender["status"] == "private":
+                    continue
+                results[recommender["username"]] = recommender["display_name"]
+
+        print("Found " + str(len(results)) + "public recommenders")
+        return results
