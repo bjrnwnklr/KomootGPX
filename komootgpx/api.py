@@ -178,5 +178,5 @@ class KomootApi:
                     continue
                 results[recommender["username"]] = recommender["display_name"]
 
-        print("Found " + str(len(results)) + "public recommenders")
+        print("Found " + str(len(results)) + " public recommenders")
         return results
