@@ -60,7 +60,7 @@ class GpxCompiler:
             gpx.name = gpx.name + " (Completed)"
         gpx.description = (
             f"Distance: {str(int(self.tour['distance']) / 1000.0)}km, "
-            f"Estimated duration: {str(round(self.tour['duration'] / 3600.0, 2))}h, "
+            f"Estimated duration: {timedelta(seconds=self.tour['duration'])}hrs, "
             f"Elevation up: {self.tour['elevation_up']}m, "
             f"Elevation down: {self.tour['elevation_down']}m"
         )

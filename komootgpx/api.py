@@ -30,6 +30,10 @@ class TourDetails:
             + f"{self.elevation_down}m 🠗) [{self.tourtype}]"
         )
 
+@dataclass
+class Tour:
+    id: int
+    json_data: str
 
 class BasicAuthToken(requests.auth.AuthBase):
     def __init__(self, key, value):
@@ -159,7 +163,7 @@ class KomootApi:
             BasicAuthToken(self.user_id, self.token),
         )
 
-        return r.json()
+        return Tour(tour_id, r.json())
 
     def fetch_highlight_tips(self, highlight_id):
         print("Fetching highlight '" + highlight_id + "'...")
