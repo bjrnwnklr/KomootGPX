@@ -1,7 +1,34 @@
 import base64
 import requests
+from dataclasses import dataclass
+from datetime import timedelta
 
-from .utils import print_error, bcolor
+
+from .utils import print_error
+
+
+@dataclass
+class TourDetails:
+    id: int
+    name: str
+    sport: str
+    distance: int  # distance in meters
+    duration: int  # duration in seconds
+    elevation_up: int
+    elevation_down: int
+    tourtype: str
+    userid: int
+    username: str
+
+    def __repr__(self):
+        distance = self.distance / 1000.0
+        duration = timedelta(seconds=self.duration)
+
+        return (
+            f"{self.id}: {self.name} by {self.username} "
+            + f"({distance:.1f}km / {duration}hrs / {self.elevation_up}m 🠕 / "
+            + f"{self.elevation_down}m 🠗) [{self.tourtype}]"
+        )
 
 
 class BasicAuthToken(requests.auth.AuthBase):
@@ -88,15 +115,17 @@ class KomootApi:
             for tour in tours:
                 if tourType != "all" and tourType != tour["type"]:
                     continue
-                results[tour["id"]] = (
-                    tour["name"]
-                    + " ("
-                    + tour["sport"]
-                    + "; "
-                    + str(int(tour["distance"]) / 1000.0)
-                    + "km; "
-                    + tour["type"]
-                    + ")"
+                results[tour["id"]] = TourDetails(
+                    tour["id"],
+                    tour["name"],
+                    tour["sport"],
+                    int(tour["distance"]),
+                    int(tour["duration"]),
+                    int(tour["elevation_up"]),
+                    int(tour["elevation_down"]),
+                    tour["type"],
+                    tour_user_id,
+                    tour["_embedded"]["creator"]["display_name"],
                 )
 
         print("Found " + str(len(results)) + " tours")
@@ -104,17 +133,8 @@ class KomootApi:
 
     def print_tours(self, tours):
         print()
-        for tour_id, name in tours.items():
-            print(
-                bcolor.BOLD
-                + bcolor.HEADER
-                + str(tour_id)
-                + bcolor.ENDC
-                + " => "
-                + bcolor.BOLD
-                + name
-                + bcolor.ENDC
-            )
+        for tour_id in tours:
+            print(tours[tour_id])
 
         if len(tours) < 1:
             print_error("No tours found on profile.")
