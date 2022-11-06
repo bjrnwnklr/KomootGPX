@@ -1,6 +1,6 @@
 import base64
 import requests
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import timedelta
 from gpxpy.geo import Location
 
@@ -48,6 +48,34 @@ class Highlight:
     creator: User
     location: Location
     sport: str
+
+
+@dataclass
+class QueryFilter:
+    """Used to filter results when calling the `/user/{username}/tours/` API.
+
+    Valid values:
+    - type: [str] `tour_planned`, `tour_recorded`. Default: `None`,
+        i.e. fetches all tours.
+    - sport_types: [str] see list at
+        https://static.komoot.de/doc/external-api/v007/sports.html for possible values
+        - `mtb` for Mountain Bike tours
+        - `e_mtb` for eMTB tours
+        - `mtb_advanced` for Enduro MTB tours
+        - `hike` for hiking / walking
+        Default: `None`, i.e. fetch all types
+    - center: tuple[float] Filter for tours with start point around this center.
+        Has to be in `(lat,lng)` format. Default: `None`
+    - max_distance: [int] distance of start point of tours from
+        `center` in meters. Set between length of the desired tour
+        and half of the length to capture enough tours
+        Default: None
+    """
+
+    type: str = None
+    sport_types: str = None
+    center: tuple[float] = None
+    max_distance: int = None
 
 
 class BasicAuthToken(requests.auth.AuthBase):
@@ -98,11 +126,53 @@ class KomootApi:
         self.user_id = r.json()["username"]
         self.token = r.json()["password"]
 
-    def fetch_tours(self, tour_user_id=None, tourType="all"):
+    def fetch_tours(
+        self, tour_user_id=None, tourType="all", queryfilter=None
+    ) -> dict[TourDetails]:
+        """Fetches all tours from a user. Tours can be filtered by passing a
+        `QueryFilter` instance to the `queryfilter` argument.
+
+        Valid values for the `QueryFilter` instance:
+        - type: [str] `tour_planned`, `tour_recorded`. Default: `None`, i.e. fetches
+            all tours.
+        - sport_types: [str] see list at
+            https://static.komoot.de/doc/external-api/v007/sports.html
+            for possible values
+            - `mtb` for Mountain Bike tours
+            - `e_mtb` for eMTB tours
+            - `mtb_advanced` for Enduro MTB tours
+            - `hike` for hiking / walking
+            Default: `None`, i.e. fetch all types
+        - center: tuple[float] Filter for tours with start point around this center.
+            Has to be in `(lat,lng)` format. Default: `None`
+        - max_distance: [int] distance of start point of tours from `center`
+            in meters. Set between length of the desired tour and half of the length
+            to capture enough tours
+            Default: None
+
+        Args:
+            tour_user_id (int, optional): Numeric komoot id of the tour.
+                Defaults to None.
+            queryfilter (QueryFilter, optional): `QueryFilter` instance to filter the
+                returned results. Defaults to None.
+
+        Returns:
+            dict[TourDetails]: A dictionary of `TourDetails` instances,
+                with the tour id as key.
+        """
+
+        # define the parameters to pass to the komoot API query for tours.
+        # if no queryfilter object is passed, use an empty dict.
+        # If a queryfilter instance is passed, convert to dict as the requests parameter
+        # is a dictionary
+        if not queryfilter:
+            params = {}
+        else:
+            params = asdict(queryfilter)
+
         # if a different user than the logged in one is specified, it is mandatory
         # to set the `status` parameter of the request to `public`.
         # Otherwise, use the current logged in user.
-        params = {}
         if tour_user_id:
             params["status"] = "public"
         else:
