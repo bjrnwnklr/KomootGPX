@@ -72,10 +72,10 @@ def usage():
     )
 
 
-def make_gpx(tour, tour_id, output_dir):
-    gpx = GpxCompiler(tour)
+def make_gpx(tour, output_dir):
+    gpx = GpxCompiler(tour.json_data)
 
-    path = f"{output_dir}/{sanitize_filename(tour['name'])}-{tour_id}.gpx"
+    path = f"{output_dir}/{sanitize_filename(tour.json_data['name'])}-{tour.id}.gpx"
     f = open(path, "w", encoding="utf-8")
     f.write(gpx.generate())
     f.close()
@@ -177,11 +177,11 @@ def main(argv):
 
     if tour_selection == "all":
         for tour_id in tours:
-            tour = api.fetch_tour(str(tour_id))
-            make_gpx(tour, tour_id, output_dir)
+            tour = api.fetch_tour(tour_id)
+            make_gpx(tour, output_dir)
     else:
-        tour = api.fetch_tour(str(tour_selection))
-        make_gpx(tour, tour_selection, output_dir)
+        tour = api.fetch_tour(tour_selection)
+        make_gpx(tour, output_dir)
     print()
 
 
