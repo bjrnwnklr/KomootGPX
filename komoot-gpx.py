@@ -89,7 +89,6 @@ def main(argv):
     pwd = ""
     user_id = ""
     print_tours = False
-    typeFilter = "all"
     output_dir = os.getcwd()
 
     try:
@@ -115,9 +114,6 @@ def main(argv):
         if opt == "-h":
             usage()
             sys.exit()
-
-        elif opt in "--filter":
-            typeFilter = "tour_" + str(arg)
 
         elif opt in ("-l", "--list-tours"):
             print_tours = True
@@ -157,7 +153,7 @@ def main(argv):
         user_id = None
 
     # fetch all tours of the user
-    tours = api.fetch_tours(user_id, typeFilter)
+    tours = api.fetch_tours(user_id)
     api.print_tours(tours)
     print(f"Found {len(tours)} tours.")
 

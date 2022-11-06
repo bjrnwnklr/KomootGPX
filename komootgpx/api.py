@@ -126,9 +126,7 @@ class KomootApi:
         self.user_id = r.json()["username"]
         self.token = r.json()["password"]
 
-    def fetch_tours(
-        self, tour_user_id=None, tourType="all", queryfilter=None
-    ) -> dict[TourDetails]:
+    def fetch_tours(self, tour_user_id=None, queryfilter=None) -> dict[TourDetails]:
         """Fetches all tours from a user. Tours can be filtered by passing a
         `QueryFilter` instance to the `queryfilter` argument.
 
@@ -196,8 +194,6 @@ class KomootApi:
             # process tours that were found and add to results
             tours = response["_embedded"]["tours"]
             for tour in tours:
-                if tourType != "all" and tourType != tour["type"]:
-                    continue
                 results[tour["id"]] = TourDetails(
                     tour["id"],
                     tour["name"],
