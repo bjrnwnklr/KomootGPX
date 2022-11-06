@@ -30,7 +30,6 @@ setup(
         "requests>=2.25.1",
         "urllib3>=1.26.3",
     ],
-    extras_require={"interactive": ["jupyter"]},
     setup_requires=["pytest", "flake8", "black"],
     tests_require=["pytest"],
 )
