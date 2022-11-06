@@ -185,14 +185,16 @@ class KomootApi:
             r = self.__send_request(
                 current_uri, BasicAuthToken(self.user_id, self.token), params
             )
+            response = r.json()
 
-            has_next_page = (
-                "next" in r.json()["_links"] and "href" in r.json()["_links"]["next"]
-            )
-            if has_next_page:
-                current_uri = r.json()["_links"]["next"]["href"]
+            # check if any results found; if no results exit and return
+            # an empty dict.
+            total_elements = response["page"]["totalElements"]
+            if total_elements == 0:
+                break
 
-            tours = r.json()["_embedded"]["tours"]
+            # process tours that were found and add to results
+            tours = response["_embedded"]["tours"]
             for tour in tours:
                 if tourType != "all" and tourType != tour["type"]:
                     continue
@@ -208,6 +210,14 @@ class KomootApi:
                     tour_user_id,
                     tour["_embedded"]["creator"]["display_name"],
                 )
+
+            # check if there is a next page link, if yes process
+            # the link in the next iteration
+            has_next_page = (
+                "next" in response["_links"] and "href" in response["_links"]["next"]
+            )
+            if has_next_page:
+                current_uri = response["_links"]["next"]["href"]
 
         return results
 
