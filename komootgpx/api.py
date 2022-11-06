@@ -17,23 +17,31 @@ class TourDetails:
     elevation_up: int
     elevation_down: int
     tourtype: str
-    userid: int
-    username: str
+    user_id: int
+    user_display_name: str
 
     def __repr__(self):
         distance = self.distance / 1000.0
         duration = timedelta(seconds=self.duration)
 
         return (
-            f"{self.id}: {self.name} by {self.username} "
+            f"{self.id}: {self.name} by {self.user_display_name} "
             + f"({distance:.1f}km / {duration}hrs / {self.elevation_up}m 🠕 / "
             + f"{self.elevation_down}m 🠗) [{self.tourtype}]"
         )
 
+
 @dataclass
 class Tour:
     id: int
-    json_data: str
+    json_data: dict
+
+
+@dataclass
+class User:
+    id: int
+    display_name: str
+
 
 class BasicAuthToken(requests.auth.AuthBase):
     def __init__(self, key, value):
@@ -198,9 +206,11 @@ class KomootApi:
             recommenders = r.json()["_embedded"]["items"]
             for recommender in recommenders:
                 # get only public profiles
-                if recommender["status"] == "private":
+                if recommender["status"] != "public":
                     continue
-                results[recommender["username"]] = recommender["display_name"]
+                results[recommender["username"]] = User(
+                    recommender["username"], recommender["display_name"]
+                )
 
         print("Found " + str(len(results)) + " public recommenders")
         return results
