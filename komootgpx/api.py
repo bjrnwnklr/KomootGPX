@@ -2,6 +2,7 @@ import base64
 import requests
 from dataclasses import dataclass
 from datetime import timedelta
+from gpxpy.geo import Location
 
 
 @dataclass
@@ -41,18 +42,11 @@ class User:
 
 
 @dataclass
-class Coordinates:
-    lat: float
-    lng: float
-    alt: float
-
-
-@dataclass
 class Highlight:
     id: int
     name: str
     creator: User
-    coordinates: Coordinates
+    location: Location
     sport: str
 
 
@@ -276,7 +270,7 @@ class KomootApi:
                 highlight["_embedded"]["creator"]["username"],
                 highlight["_embedded"]["creator"]["display_name"],
             ),
-            Coordinates(
+            Location(
                 highlight["mid_point"]["lat"],
                 highlight["mid_point"]["lng"],
                 highlight["mid_point"]["alt"],
