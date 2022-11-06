@@ -156,7 +156,6 @@ class KomootApi:
                     tour["_embedded"]["creator"]["display_name"],
                 )
 
-        print("Found " + str(len(results)) + " tours")
         return results
 
     def print_tours(self, tours):
@@ -190,7 +189,6 @@ class KomootApi:
         return Tour(tour_id, r.json())
 
     def fetch_highlight_tips(self, highlight_id):
-        print("Fetching highlight '" + highlight_id + "'...")
 
         r = self.__send_request(
             "https://api.komoot.de/v007/highlights/" + highlight_id + "/tips/",
@@ -228,6 +226,29 @@ class KomootApi:
                     recommender["username"], recommender["display_name"]
                 )
 
-        print("Found " + str(len(results)) + " public recommenders")
-
         return results
+
+    def fetch_highlight(self, highlight_id=None):
+        params = {}
+
+        uri = f"https://api.komoot.de/v007/highlights/{highlight_id}/"
+        r = self.__send_request(uri, BasicAuthToken(self.user_id, self.token), params)
+        r.raise_for_status()
+
+        highlight = r.json()
+        result = Highlight(
+            highlight["id"],
+            highlight["name"],
+            User(
+                highlight["_embedded"]["creator"]["username"],
+                highlight["_embedded"]["creator"]["display_name"],
+            ),
+            Coordinates(
+                highlight["mid_point"]["lat"],
+                highlight["mid_point"]["lng"],
+                highlight["mid_point"]["alt"],
+            ),
+            highlight["sport"],
+        )
+
+        return result
