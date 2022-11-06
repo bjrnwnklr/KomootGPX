@@ -176,6 +176,52 @@ class KomootApi:
 
         return Tour(tour_id, r.json())
 
+    def fetch_tour_gpx(self, tour_id: int) -> str:
+        """Fetch the gpx track of a given tour.
+
+        Args:
+            tour_id (int): Id of the tour.
+
+        Returns:
+            str: XML string containing the GPX track
+
+        Format of the returned string:
+
+        ```xml
+        <?xml version='1.0' encoding='UTF-8'?>
+        <gpx version="1.1" creator="https://www.komoot.de"
+            xmlns="http://www.topografix.com/GPX/1/1"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.topografix.com/GPX/1/1
+            http://www.topografix.com/GPX/1/1/gpx.xsd">
+        <metadata>
+            <name>Goldener Oktober und dicker Nebel: Chestenberg Tour</name>
+            <author>
+            <link href="https://www.komoot.de">
+                <text>komoot</text>
+                <type>text/html</type>
+            </link>
+            </author>
+        </metadata>
+            <trk>
+                <name>Goldener Oktober und dicker Nebel: Chestenberg Tour</name>
+                <trkseg>
+                    <trkpt lat="47.359209" lon="8.362022">
+                        <ele>543.369024</ele>
+                        <time>2022-10-23T07:08:56.000Z</time>
+                    </trkpt>
+                </trkseg>
+            </trk>
+        </gpx>
+        ```
+        """
+        params = {}
+
+        uri = f"https://api.komoot.de/v007/tours/{tour_id}.gpx"
+        r = self.__send_request(uri, BasicAuthToken(self.user_id, self.token), params)
+
+        return r.text
+
     def fetch_highlight_tips(self, highlight_id):
 
         r = self.__send_request(
@@ -186,7 +232,7 @@ class KomootApi:
 
         return r.json()
 
-    def fetch_recommenders(self, highlight_id=None):
+    def fetch_recommenders(self, highlight_id):
         params = {}
 
         results = {}
@@ -216,12 +262,11 @@ class KomootApi:
 
         return results
 
-    def fetch_highlight(self, highlight_id=None):
+    def fetch_highlight(self, highlight_id):
         params = {}
 
         uri = f"https://api.komoot.de/v007/highlights/{highlight_id}/"
         r = self.__send_request(uri, BasicAuthToken(self.user_id, self.token), params)
-        r.raise_for_status()
 
         highlight = r.json()
         result = Highlight(
