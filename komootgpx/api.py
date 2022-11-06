@@ -43,6 +43,22 @@ class User:
     display_name: str
 
 
+@dataclass
+class Coordinates:
+    lat: float
+    lng: float
+    alt: float
+
+
+@dataclass
+class Highlight:
+    id: int
+    name: str
+    creator: User
+    coordinates: Coordinates
+    sport: str
+
+
 class BasicAuthToken(requests.auth.AuthBase):
     def __init__(self, key, value):
         self.key = key
@@ -213,4 +229,5 @@ class KomootApi:
                 )
 
         print("Found " + str(len(results)) + " public recommenders")
+
         return results
