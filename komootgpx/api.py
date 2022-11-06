@@ -4,9 +4,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 
-from .utils import print_error
-
-
 @dataclass
 class TourDetails:
     id: int
@@ -89,18 +86,15 @@ class KomootApi:
         return {}
 
     @staticmethod
-    def __send_request(url, auth, params=None, critical=True):
+    def __send_request(url, auth, params=None):
         if not params:
             params = {}
         r = requests.get(url, params=params, auth=auth)
-        if r.status_code != 200:
-            print_error("Error " + str(r.status_code) + ": " + str(r.json()))
-            if critical:
-                exit(1)
+        r.raise_for_status()
+
         return r
 
     def login(self, email, password):
-        print("Logging in...")
 
         r = self.__send_request(
             "https://api.komoot.de/v006/account/email/" + email + "/",
@@ -110,9 +104,7 @@ class KomootApi:
         self.user_id = r.json()["username"]
         self.token = r.json()["password"]
 
-        print("Logged in as '" + r.json()["user"]["displayname"] + "'")
-
-    def fetch_tours(self, tour_user_id=None, tourType="all", silent=False):
+    def fetch_tours(self, tour_user_id=None, tourType="all"):
         # if a different user than the logged in one is specified, it is mandatory
         # to set the `status` parameter of the request to `public`.
         # Otherwise, use the current logged in user.
@@ -121,9 +113,6 @@ class KomootApi:
             params["status"] = "public"
         else:
             tour_user_id = self.user_id
-
-        if not silent:
-            print("Fetching tours of user '" + tour_user_id + "'...")
 
         results = {}
         has_next_page = True
@@ -164,10 +153,9 @@ class KomootApi:
             print(tours[tour_id])
 
         if len(tours) < 1:
-            print_error("No tours found on profile.")
+            print("No tours found on profile.")
 
     def fetch_tour(self, tour_id):
-        print("Fetching tour '" + tour_id + "'...")
 
         # some of these query parameters are no longer supported.
         # The only supported ones are in _embedded:
