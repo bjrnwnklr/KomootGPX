@@ -149,6 +149,7 @@ def main(argv):
     # log in to Komoot with the specified user
     api = KomootApi()
     api.login(mail, pwd)
+    print(f"Logged in as {api.user_id}.")
 
     # if another user is specified, retrieve their tours. If none specified,
     # retrieve tours of the logged in user.
@@ -158,6 +159,7 @@ def main(argv):
     # fetch all tours of the user
     tours = api.fetch_tours(user_id, typeFilter)
     api.print_tours(tours)
+    print(f"Found {len(tours)} tours.")
 
     # exit in case just the tours should be printed
     if print_tours:
