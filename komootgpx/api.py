@@ -1,5 +1,6 @@
 import base64
 import requests
+from requests.exceptions import HTTPError
 from dataclasses import dataclass, asdict
 from datetime import timedelta
 from gpxpy.geo import Location
@@ -111,8 +112,18 @@ class KomootApi:
     def __send_request(url, auth, params=None):
         if not params:
             params = {}
-        r = requests.get(url, params=params, auth=auth)
-        r.raise_for_status()
+        try:
+            r = requests.get(url, params=params, auth=auth)
+            r.raise_for_status()
+        except HTTPError as exc:
+            code = exc.response.status_code
+            if code == 403:
+                # oops, we hit a private profile our tour
+                # and are not permissioned to view
+                # TODO: add log message
+                pass
+            else:
+                raise
 
         return r
 
