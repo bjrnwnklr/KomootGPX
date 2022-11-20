@@ -62,13 +62,13 @@ class TourDetails:
         """
         return timedelta(seconds=self.duration)
 
-    def date_date(self) -> datetime.date:
-        """Returns the yyyy-mm-dd date of the tour date.
+    def date_date(self) -> str:
+        """Returns the string repr of yyyy-mm-dd date of the tour date.
 
         Returns:
             datetime.date: Date in yyyy-mm-dd format
         """
-        return self.date.date()
+        return str(self.date.date())
 
 
     @staticmethod
@@ -113,7 +113,7 @@ class TourDetails:
         return [
             self.id,
             self.name,
-            str(self.date_date()),
+            self.date_date(),
             self.distance_in_km(), # format into km by divding by 1000
             str(self.duration_in_td()), # format into time
             self.elevation_up,
