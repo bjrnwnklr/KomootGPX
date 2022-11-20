@@ -1,14 +1,17 @@
 import base64
 import requests
-from dataclasses import dataclass, asdict
-from datetime import timedelta
+from requests.exceptions import HTTPError
+from dataclasses import dataclass, asdict, field
+from datetime import timedelta, datetime
 from gpxpy.geo import Location
+import typing
 
 
 @dataclass
 class TourDetails:
     id: int
     name: str
+    date: datetime
     sport: str
     distance: int  # distance in meters
     duration: int  # duration in seconds
@@ -17,16 +20,107 @@ class TourDetails:
     tourtype: str
     user_id: int
     user_display_name: str
+    link: str = field(init=False)
+    outputfields: typing.ClassVar = [
+            "id",
+            "name",
+            "date",
+            "distance",
+            "duration",
+            "elevation_up",
+            "elevation_down",
+            "user_display_name",
+            "link",
+        ]
+
+    def __post_init__(self) -> None:
+        self.link = f'https://www.komoot.de/tour/{self.id}'
 
     def __repr__(self):
-        distance = self.distance / 1000.0
-        duration = timedelta(seconds=self.duration)
-
         return (
             f"{self.id}: {self.name} by {self.user_display_name} "
-            + f"({distance:.1f}km / {duration}hrs / {self.elevation_up}m 🠕 / "
-            + f"{self.elevation_down}m 🠗) [{self.tourtype}]"
+            + f"({self.date_date()}) "
+            + f"({self.distance_in_km():.1f}km / {self.duration_in_td()}hrs "
+            + f"/ {self.elevation_up}m 🠕 / "
+            + f"{self.elevation_down}m 🠗) [{self.tourtype}] "
+            + f"({self.link})"
         )
+
+    def distance_in_km(self) -> float:
+        """Returns the distance in km instead of meters.
+
+        Returns:
+            float: Distance in kilometers
+        """
+        return self.distance / 1000.0
+
+    def duration_in_td(self) -> timedelta:
+        """Returns duration in timedelta format.
+
+        Returns:
+            timedelta: Duration in timedelta format.
+        """
+        return timedelta(seconds=self.duration)
+
+    def date_date(self) -> str:
+        """Returns the string repr of yyyy-mm-dd date of the tour date.
+
+        Returns:
+            datetime.date: Date in yyyy-mm-dd format
+        """
+        return str(self.date.date())
+
+
+    @staticmethod
+    def fieldnames(self) -> list[str]:
+        """Returns a list of the fieldnames for use with a
+        csv writer.
+
+        Fields returned:
+        - id
+        - name
+        - date
+        - distance
+        - duration
+        - elevation_up
+        - elevation_down
+        - user
+        - link to the tour on komoot
+
+        Returns:
+            list[str]: List of the field names of the tour
+        """
+        return self.outputfields
+
+    def to_list(self) -> list[object]:
+        """Returns a list of the tour details
+        e.g. for writing to a csv.
+
+        Fields returned:
+        - id
+        - name
+        - date
+        - distance
+        - duration
+        - elevation_up
+        - elevation_down
+        - user
+        - link to the tour on komoot
+
+        Returns:
+            list[]: List of the tour details.
+        """
+        return [
+            self.id,
+            self.name,
+            self.date_date(),
+            self.distance_in_km(), # format into km by divding by 1000
+            str(self.duration_in_td()), # format into time
+            self.elevation_up,
+            self.elevation_down,
+            self.user_display_name,
+            self.link
+        ]
 
 
 @dataclass
@@ -48,7 +142,10 @@ class Highlight:
     creator: User
     location: Location
     sport: str
+    latlong: str = field(init=False)
 
+    def __post_init__(self):
+        self.latlong = f'{self.location.latitude},{self.location.longitude}'
 
 @dataclass
 class QueryFilter:
@@ -111,8 +208,18 @@ class KomootApi:
     def __send_request(url, auth, params=None):
         if not params:
             params = {}
-        r = requests.get(url, params=params, auth=auth)
-        r.raise_for_status()
+        try:
+            r = requests.get(url, params=params, auth=auth)
+            r.raise_for_status()
+        except HTTPError as exc:
+            code = exc.response.status_code
+            if code == 403:
+                # oops, we hit a private profile our tour
+                # and are not permissioned to view
+                # TODO: add log message
+                pass
+            else:
+                raise
 
         return r
 
@@ -197,6 +304,11 @@ class KomootApi:
                 results[tour["id"]] = TourDetails(
                     tour["id"],
                     tour["name"],
+                    # Python 3.11 datetime.fromisoformat recognizes iso strings
+                    # ending on 'Z' now as in timezone +00. 3.10 does not so this hack
+                    # with replacing 'Z' with '+00.00' is required to correctly
+                    #  parse the timestrings returned by Komoot.
+                    datetime.fromisoformat(tour["date"].replace("Z", "+00:00")),
                     tour["sport"],
                     int(tour["distance"]),
                     int(tour["duration"]),
