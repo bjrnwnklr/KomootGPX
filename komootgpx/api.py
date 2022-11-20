@@ -142,7 +142,10 @@ class Highlight:
     creator: User
     location: Location
     sport: str
+    latlong: str = field(init=False)
 
+    def __post_init__(self):
+        self.latlong = f'{self.location.latitude},{self.location.longitude}'
 
 @dataclass
 class QueryFilter:
