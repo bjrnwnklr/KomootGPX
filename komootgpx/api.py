@@ -22,19 +22,19 @@ class TourDetails:
     user_display_name: str
     link: str = field(init=False)
     outputfields: typing.ClassVar = [
-            "id",
-            "name",
-            "date",
-            "distance",
-            "duration",
-            "elevation_up",
-            "elevation_down",
-            "user_display_name",
-            "link",
-        ]
+        "id",
+        "name",
+        "date",
+        "distance",
+        "duration",
+        "elevation_up",
+        "elevation_down",
+        "user_display_name",
+        "link",
+    ]
 
     def __post_init__(self) -> None:
-        self.link = f'https://www.komoot.de/tour/{self.id}'
+        self.link = f"https://www.komoot.de/tour/{self.id}"
 
     def __repr__(self):
         return (
@@ -69,7 +69,6 @@ class TourDetails:
             datetime.date: Date in yyyy-mm-dd format
         """
         return str(self.date.date())
-
 
     @staticmethod
     def fieldnames(self) -> list[str]:
@@ -114,12 +113,12 @@ class TourDetails:
             self.id,
             self.name,
             self.date_date(),
-            self.distance_in_km(), # format into km by divding by 1000
-            str(self.duration_in_td()), # format into time
+            self.distance_in_km(),  # format into km by divding by 1000
+            str(self.duration_in_td()),  # format into time
             self.elevation_up,
             self.elevation_down,
             self.user_display_name,
-            self.link
+            self.link,
         ]
 
 
@@ -145,7 +144,8 @@ class Highlight:
     latlong: str = field(init=False)
 
     def __post_init__(self):
-        self.latlong = f'{self.location.latitude},{self.location.longitude}'
+        self.latlong = f"{self.location.latitude},{self.location.longitude}"
+
 
 @dataclass
 class QueryFilter:
@@ -224,7 +224,6 @@ class KomootApi:
         return r
 
     def login(self, email, password):
-
         r = self.__send_request(
             "https://api.komoot.de/v006/account/email/" + email + "/",
             BasicAuthToken(email, password),
@@ -295,10 +294,11 @@ class KomootApi:
             # check if any results found; if no results exit and return
             # an empty dict.
             # Some json responses include totalElements > 0 but have no actual tours
-            # i.e. no `_embedded` element in the json response (could be that tours are private?)
+            # i.e. no `_embedded` element in the json response
+            # (could be that tours are private?)
             # Return empty result set in this case as well.
             total_elements = response["page"]["totalElements"]
-            if total_elements == 0 or '_embedded' not in response:
+            if total_elements == 0 or "_embedded" not in response:
                 break
 
             # process tours that were found and add to results
@@ -341,7 +341,6 @@ class KomootApi:
             print("No tours found on profile.")
 
     def fetch_tour(self, tour_id):
-
         # some of these query parameters are no longer supported.
         # The only supported ones are in _embedded:
         # coordinates, way_types, surfaces, directions, participants
@@ -408,7 +407,6 @@ class KomootApi:
         return r.text
 
     def fetch_highlight_tips(self, highlight_id):
-
         r = self.__send_request(
             "https://api.komoot.de/v007/highlights/" + highlight_id + "/tips/",
             BasicAuthToken(self.user_id, self.token),
