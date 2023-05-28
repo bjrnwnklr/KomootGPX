@@ -294,8 +294,11 @@ class KomootApi:
 
             # check if any results found; if no results exit and return
             # an empty dict.
+            # Some json responses include totalElements > 0 but have no actual tours
+            # i.e. no `_embedded` element in the json response (could be that tours are private?)
+            # Return empty result set in this case as well.
             total_elements = response["page"]["totalElements"]
-            if total_elements == 0:
+            if total_elements == 0 or '_embedded' not in response:
                 break
 
             # process tours that were found and add to results
